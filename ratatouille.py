@@ -5,7 +5,8 @@ import argparse
 import time
 import psutil
 import pandas
-from plotnine import ggplot, theme_bw, aes, geom_line, expand_limits
+from plotnine import ggplot, theme_bw, aes, geom_line, expand_limits, scale_x_datetime, ylab
+from mizani.formatters import date_format
 
 
 class CPULoad:
@@ -35,6 +36,7 @@ class Monitor:
     def watch(self):
         timestamp = str(datetime.datetime.now())
         self.writer.writerow([timestamp] + [watcher.get_value() for watcher in self.watchers])
+        self.file.flush()
 
     def start_loop(self):
         try:
@@ -57,6 +59,12 @@ class Drawer:
         plot += expand_limits(y=0)
         plot += expand_limits(y=100)
         plot += geom_line(aes(x='timestamp', y='value', color='variable'))
+        timedelta = self.data.timestamp.max() - self.data.timestamp.min()
+        if timedelta.days > 2:
+            plot += scale_x_datetime(labels=date_format('%Y/%m/%D'))
+        else:
+            plot += scale_x_datetime(labels=date_format('%H:%M'))
+        plot += ylab('Usage (%)')
         return plot
 
 
