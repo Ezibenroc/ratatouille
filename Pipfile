@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 psutil = "*"
+pandas = "*"
+plotnine = "*"
 
 [dev-packages]
 ipython = "*"

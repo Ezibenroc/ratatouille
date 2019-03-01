@@ -4,6 +4,8 @@ import datetime
 import argparse
 import time
 import psutil
+import pandas
+from plotnine import ggplot, theme_bw, aes, geom_line, expand_limits
 
 
 class CPULoad:
@@ -43,18 +45,44 @@ class Monitor:
             return
 
 
+class Drawer:
+    def __init__(self, input_file):
+        self.input_file = input_file
+        self.data = pandas.read_csv(input_file)
+        self.data.timestamp = pandas.to_datetime(self.data.timestamp)
+
+    def plot(self):
+        data = self.data.melt('timestamp')
+        plot = ggplot(data) + theme_bw()
+        plot += expand_limits(y=0)
+        plot += expand_limits(y=100)
+        plot += geom_line(aes(x='timestamp', y='value', color='variable'))
+        return plot
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Monitoring of the system resources')
-    parser.add_argument('--time_interval', '-t', type=int, default=60,
-                        help='Period of the measures, in seconds.')
-    parser.add_argument('output_file', type=argparse.FileType('w'),
-                        help='Output file for the measures.')
+    sp = parser.add_subparsers(dest='command')
+    sp.required = True
+    sp_collect = sp.add_parser('collect', help='Collect system data.')
+    sp_collect.add_argument('--time_interval', '-t', type=int, default=60,
+                            help='Period of the measures, in seconds.')
+    sp_collect.add_argument('output_file', type=argparse.FileType('w'),
+                            help='Output file for the measures.')
+    sp_collect = sp.add_parser('plot', help='Plot the collected data.')
+    sp_collect.add_argument('input_file', type=argparse.FileType('r'),
+                            help='Input file of the measures.')
     args = parser.parse_args(sys.argv[1:])
-
-    monitor = Monitor([CPULoad, MemoryUsage], time_interval=args.time_interval,
-                      output_file=args.output_file)
-    t = time.time()
-    monitor.start_loop()
-    t = time.time() - t
-    print('Monitored the sytem for %d seconds' % int(t))
+    if args.command == 'collect':
+        monitor = Monitor([CPULoad, MemoryUsage], time_interval=args.time_interval,
+                          output_file=args.output_file)
+        t = time.time()
+        monitor.start_loop()
+        t = time.time() - t
+        print('Monitored the sytem for %d seconds' % int(t))
+    elif args.command == 'plot':
+        drawer = Drawer(args.input_file)
+        str(drawer.plot())
+    else:
+        assert False
