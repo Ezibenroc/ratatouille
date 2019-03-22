@@ -4,9 +4,6 @@ import datetime
 import argparse
 import time
 import psutil
-import pandas
-from plotnine import ggplot, theme_bw, aes, geom_line, expand_limits, scale_x_datetime, ylab
-from mizani.formatters import date_format
 
 
 class CPULoad:
@@ -49,16 +46,26 @@ class Monitor:
 
 class Drawer:
     def __init__(self, input_file):
+        import pandas
         self.input_file = input_file
         self.data = pandas.read_csv(input_file)
         self.data.timestamp = pandas.to_datetime(self.data.timestamp)
 
     def plot(self):
-        data = self.data.melt('timestamp')
-        plot = ggplot(data) + theme_bw()
+        from plotnine import ggplot, theme_bw, aes, geom_line, expand_limits, scale_x_datetime, ylab
+        from mizani.formatters import date_format
+        data = self.data.copy()
+        data['time_diff'] = data['timestamp'][1:].reset_index(drop=True) - data['timestamp'][:-1].reset_index(drop=True)
+        time_step = data['time_diff'].median()
+        breakpoints = list(data[data['time_diff'] > time_step * 10].timestamp)
+        breakpoints = [data['timestamp'].min(), *breakpoints, data['timestamp'].max()]
+        data = data.drop('time_diff', 1).melt('timestamp')
+        plot = ggplot() + theme_bw()
         plot += expand_limits(y=0)
         plot += expand_limits(y=100)
-        plot += geom_line(aes(x='timestamp', y='value', color='variable'))
+        for min_t, max_t in zip(breakpoints[:-1], breakpoints[1:]):
+            tmp = data[(data['timestamp'] > min_t) & (data['timestamp'] < max_t)]
+            plot += geom_line(tmp, aes(x='timestamp', y='value', color='variable'))
         timedelta = self.data.timestamp.max() - self.data.timestamp.min()
         if timedelta.days > 2:
             plot += scale_x_datetime(labels=date_format('%Y/%m/%D'))
