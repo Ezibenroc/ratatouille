@@ -68,7 +68,7 @@ class Drawer:
             plot += geom_line(tmp, aes(x='timestamp', y='value', color='variable'))
         timedelta = self.data.timestamp.max() - self.data.timestamp.min()
         if timedelta.days > 2:
-            plot += scale_x_datetime(labels=date_format('%Y/%m/%D'))
+            plot += scale_x_datetime(labels=date_format('%Y/%m/%d'))
         else:
             plot += scale_x_datetime(labels=date_format('%H:%M'))
         plot += ylab('Usage (%)')
