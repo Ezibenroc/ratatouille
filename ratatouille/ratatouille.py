@@ -41,7 +41,7 @@ class MemoryUsage:
     @staticmethod
     def get_values():
         mem = psutil.virtual_memory()
-        return [mem.percent, mem.available]
+        return [100-mem.percent, mem.available]
 
 
 class Temperature:
@@ -124,7 +124,7 @@ class Drawer:
         self.data.timestamp = pandas.to_datetime(self.data.timestamp)
 
     def plot(self):
-        from plotnine import ggplot, theme_bw, aes, geom_line, expand_limits, scale_x_datetime, ylab
+        from plotnine import ggplot, theme_bw, aes, geom_line, expand_limits, scale_x_datetime, ylab, facet_wrap, theme
         from mizani.formatters import date_format
         data = self.data.copy()
         data['time_diff'] = data['timestamp'][1:].reset_index(drop=True) - data['timestamp'][:-1].reset_index(drop=True)
@@ -133,15 +133,14 @@ class Drawer:
         breakpoints = [data['timestamp'].min(), *breakpoints, data['timestamp'].max()]
         data = data.drop('time_diff', 1).melt('timestamp')
         plot = ggplot() + theme_bw()
-        plot += expand_limits(y=0)
-        plot += expand_limits(y=100)
         for min_t, max_t in zip(breakpoints[:-1], breakpoints[1:]):
             tmp = data[(data['timestamp'] > min_t) & (data['timestamp'] < max_t)]
-            plot += geom_line(tmp, aes(x='timestamp', y='value', color='variable'))
+            plot += geom_line(tmp, aes(x='timestamp', y='value', color='variable'), show_legend=False)
+        plot += facet_wrap(['variable'], scales='free')
         timedelta = self.data.timestamp.max() - self.data.timestamp.min()
         if timedelta.days > 2:
             plot += scale_x_datetime(labels=date_format('%Y/%m/%d'))
         else:
             plot += scale_x_datetime(labels=date_format('%H:%M'))
-        plot += ylab('Usage (%)')
+        plot += ylab('Value')
         return plot
