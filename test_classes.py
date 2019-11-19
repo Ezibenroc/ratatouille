@@ -1,6 +1,6 @@
 from ratatouille.ratatouille import *
 import os
-from psutil import cpu_count
+from psutil import cpu_count, net_io_counters
 
 
 def test_monitors():
@@ -10,6 +10,7 @@ def test_monitors():
         (Temperature, cpu_count(logical=False)),
         (CPUFreq, cpu_count(logical=True)),
         (CPUStats, 3),
+        (Network, 2*len(net_io_counters(pernic=True)))
     ]
     for cls, nb_values in classes:
         mon = cls()

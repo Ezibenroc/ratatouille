@@ -63,6 +63,21 @@ class Temperature:
         return [t[1] for t in values]
 
 
+class Network:
+    def __init__(self):
+        self.interfaces = list(psutil.net_io_counters(pernic=True).keys())
+        self.header = []
+        for nic in self.interfaces:
+            self.header.extend(['bytes_sent_%s' % nic, 'bytes_recv_%s' % nic])
+
+    def get_values(self):
+        data = psutil.net_io_counters(pernic=True)
+        values = []
+        for nic in self.interfaces:
+            values.extend([data[nic].bytes_sent, data[nic].bytes_recv])
+        return values
+
+
 class Monitor:
     def __init__(self, watchers, output_file, time_interval):
         self.watchers = watchers
@@ -97,6 +112,7 @@ monitor_classes = [
     Temperature,
     CPUFreq,
     CPULoad,
+    Network,
 ]
 
 
