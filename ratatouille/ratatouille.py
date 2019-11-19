@@ -7,19 +7,19 @@ import psutil
 
 
 class CPULoad:
-    header = 'cpu_load'
+    header = ['cpu_load']
 
     @staticmethod
-    def get_value():
-        return psutil.cpu_percent()
+    def get_values():
+        return [psutil.cpu_percent()]
 
 
 class MemoryUsage:
-    header = 'memory_usage'
+    header = ['memory_usage']
 
     @staticmethod
-    def get_value():
-        return psutil.virtual_memory().percent
+    def get_values():
+        return [psutil.virtual_memory().percent]
 
 
 class Monitor:
@@ -28,11 +28,17 @@ class Monitor:
         self.time_interval = time_interval
         self.file = output_file
         self.writer = csv.writer(self.file)
-        self.writer.writerow(['timestamp'] + [watcher.header for watcher in self.watchers])
+        header = ['timestamp']
+        for watcher in self.watchers:
+            header.extend(watcher.header)
+        self.writer.writerow(header)
 
     def watch(self):
         timestamp = str(datetime.datetime.now())
-        self.writer.writerow([timestamp] + [watcher.get_value() for watcher in self.watchers])
+        row = [timestamp]
+        for watcher in self.watchers:
+            row.extend(watcher.get_values())
+        self.writer.writerow(row)
         self.file.flush()
 
     def start_loop(self):
