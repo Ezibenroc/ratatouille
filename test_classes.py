@@ -6,7 +6,7 @@ from psutil import cpu_count
 def test_monitors():
     classes = [
         (CPULoad, cpu_count(logical=True)),
-        (MemoryUsage, 1),
+        (MemoryUsage, 2),
         (Temperature, cpu_count(logical=False)),
         (CPUFreq, cpu_count(logical=True)),
         (CPUStats, 3),

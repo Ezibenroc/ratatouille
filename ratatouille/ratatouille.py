@@ -36,11 +36,12 @@ class CPUFreq:
 
 
 class MemoryUsage:
-    header = ['memory_usage']
+    header = ['memory_available_percent', 'memory_available']
 
     @staticmethod
     def get_values():
-        return [psutil.virtual_memory().percent]
+        mem = psutil.virtual_memory()
+        return [mem.percent, mem.available]
 
 
 class Temperature:
