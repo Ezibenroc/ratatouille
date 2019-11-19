@@ -22,7 +22,7 @@ class MemoryUsage:
 
 
 class Temperature:
-    reg = re.compile('Core (?P<id>\d+)')
+    reg = re.compile('Core (?P<id>[0-9]+)')
 
     def __init__(self):
         temps = self.get_values()
