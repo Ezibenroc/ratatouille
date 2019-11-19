@@ -1,7 +1,5 @@
-import sys
 import csv
 import datetime
-import argparse
 import time
 import psutil
 
