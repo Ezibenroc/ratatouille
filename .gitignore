@@ -1,2 +1,6 @@
-Pipfile.lock
 .mypy_cache
+ratatouille/version.py
+__pycache__
+build
+dist
+*.egg-info

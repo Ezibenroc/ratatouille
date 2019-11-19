@@ -44,6 +44,12 @@ class Monitor:
             return
 
 
+monitor_classes = [
+    CPULoad,
+    MemoryUsage,
+]
+
+
 class Drawer:
     def __init__(self, input_file):
         import pandas
@@ -73,31 +79,3 @@ class Drawer:
             plot += scale_x_datetime(labels=date_format('%H:%M'))
         plot += ylab('Usage (%)')
         return plot
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Monitoring of the system resources')
-    sp = parser.add_subparsers(dest='command')
-    sp.required = True
-    sp_collect = sp.add_parser('collect', help='Collect system data.')
-    sp_collect.add_argument('--time_interval', '-t', type=int, default=60,
-                            help='Period of the measures, in seconds.')
-    sp_collect.add_argument('output_file', type=argparse.FileType('w'),
-                            help='Output file for the measures.')
-    sp_collect = sp.add_parser('plot', help='Plot the collected data.')
-    sp_collect.add_argument('input_file', type=argparse.FileType('r'),
-                            help='Input file of the measures.')
-    args = parser.parse_args(sys.argv[1:])
-    if args.command == 'collect':
-        monitor = Monitor([CPULoad, MemoryUsage], time_interval=args.time_interval,
-                          output_file=args.output_file)
-        t = time.time()
-        monitor.start_loop()
-        t = time.time() - t
-        print('Monitored the sytem for %d seconds' % int(t))
-    elif args.command == 'plot':
-        drawer = Drawer(args.input_file)
-        str(drawer.plot())
-    else:
-        assert False
