@@ -27,4 +27,4 @@ jobs:
       run: |
         pip install pytest
         ratatouille --git-version
-        pytest
+        pytest -v
