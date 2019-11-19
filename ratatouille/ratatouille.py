@@ -2,6 +2,7 @@ import csv
 import datetime
 import time
 import psutil
+import re
 
 
 class CPULoad:
@@ -18,6 +19,25 @@ class MemoryUsage:
     @staticmethod
     def get_values():
         return [psutil.virtual_memory().percent]
+
+
+class Temperature:
+    reg = re.compile('Core (?P<id>\d+)')
+
+    def __init__(self):
+        temps = self.get_values()
+        self.header = ['temperature_core_%d' % i for i in range(len(temps))]
+
+    @classmethod
+    def get_values(cls):
+        coretemps = psutil.sensors_temperatures()['coretemp']
+        values = []
+        for temp in coretemps:
+            match = cls.reg.match(temp.label)
+            if match:
+                values.append((int(match.group('id')), temp.current))
+        values.sort(key = lambda t: t[0])
+        return [t[1] for t in values]
 
 
 class Monitor:
@@ -51,6 +71,7 @@ class Monitor:
 monitor_classes = [
     CPULoad,
     MemoryUsage,
+    Temperature,
 ]
 
 
