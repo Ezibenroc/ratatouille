@@ -24,7 +24,7 @@ def main():
                             help='Input file of the measures.')
     args = parser.parse_args(sys.argv[1:])
     if args.command == 'collect':
-        monitor = Monitor(monitor_classes, time_interval=args.time_interval,
+        monitor = Monitor([mon() for mon in monitor_classes], time_interval=args.time_interval,
                           output_file=args.output_file)
         t = time.time()
         monitor.start_loop()
