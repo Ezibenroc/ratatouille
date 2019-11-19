@@ -4,6 +4,8 @@ import time
 import psutil
 import re
 import socket
+import signal
+import sys
 
 
 class CPULoad:
@@ -89,6 +91,12 @@ class Monitor:
         for watcher in self.watchers:
             header.extend(watcher.header)
         self.writer.writerow(header)
+        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.signal(signal.SIGHUP, self.signal_handler)
+
+    def signal_handler(self, sig, frame):
+        self.file.flush()
+        sys.exit(0)
 
     def watch(self):
         timestamp = str(datetime.datetime.now())
@@ -96,15 +104,11 @@ class Monitor:
         for watcher in self.watchers:
             row.extend(watcher.get_values())
         self.writer.writerow(row)
-        self.file.flush()
 
     def start_loop(self):
-        try:
-            while True:
-                self.watch()
-                time.sleep(self.time_interval)
-        except KeyboardInterrupt:
-            return
+        while True:
+            self.watch()
+            time.sleep(self.time_interval)
 
 
 monitor_classes = [
