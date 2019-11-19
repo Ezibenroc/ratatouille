@@ -13,6 +13,17 @@ class CPULoad:
         return [psutil.cpu_percent()]
 
 
+class CPUFreq:
+    def __init__(self):
+        freqs = self.get_values()
+        self.header = ['frequency_core_%d' % i for i in range(len(freqs))]
+
+    @classmethod
+    def get_values(cls):
+        frequencies = psutil.cpu_freq(percpu=True)
+        return [int(freq.current*1e6) for freq in frequencies]
+
+
 class MemoryUsage:
     header = ['memory_usage']
 
@@ -72,6 +83,7 @@ monitor_classes = [
     CPULoad,
     MemoryUsage,
     Temperature,
+    CPUFreq,
 ]
 
 

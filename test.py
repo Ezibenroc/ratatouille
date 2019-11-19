@@ -7,6 +7,7 @@ def test_monitors():
         (CPULoad, 1),
         (MemoryUsage, 1),
         (Temperature, os.cpu_count()//2),
+        (CPUFreq, os.cpu_count()),
     ]
     for cls, nb_values in classes:
         mon = cls()
