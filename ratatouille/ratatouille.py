@@ -3,6 +3,7 @@ import datetime
 import time
 import psutil
 import re
+import socket
 
 
 class CPULoad:
@@ -84,14 +85,14 @@ class Monitor:
         self.time_interval = time_interval
         self.file = output_file
         self.writer = csv.writer(self.file)
-        header = ['timestamp']
+        header = ['hostname', 'timestamp']
         for watcher in self.watchers:
             header.extend(watcher.header)
         self.writer.writerow(header)
 
     def watch(self):
         timestamp = str(datetime.datetime.now())
-        row = [timestamp]
+        row = [socket.gethostname(), timestamp]
         for watcher in self.watchers:
             row.extend(watcher.get_values())
         self.writer.writerow(row)
