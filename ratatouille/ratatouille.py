@@ -6,11 +6,22 @@ import re
 
 
 class CPULoad:
-    header = ['cpu_load']
+    def __init__(self):
+        loads = self.get_values()
+        self.header = ['load_core_%d' % i for i in range(len(loads))]
 
     @staticmethod
     def get_values():
-        return [psutil.cpu_percent()]
+        return psutil.cpu_percent(percpu=True)
+
+
+class CPUStats:
+    header = ['ctx_switches', 'interrupts', 'soft_interrupts']
+
+    @staticmethod
+    def get_values():
+        val = psutil.cpu_stats()
+        return [val.ctx_switches, val.interrupts, val.soft_interrupts]
 
 
 class CPUFreq:
@@ -80,10 +91,11 @@ class Monitor:
 
 
 monitor_classes = [
-    CPULoad,
+    CPUStats,
     MemoryUsage,
     Temperature,
     CPUFreq,
+    CPULoad,
 ]
 
 
