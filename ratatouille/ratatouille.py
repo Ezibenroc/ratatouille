@@ -8,17 +8,31 @@ import signal
 import sys
 
 
-class CPULoad:
+class AbstractWatcher:
     def __init__(self):
-        loads = self.get_values()
-        self.header = ['load_core_%d' % i for i in range(len(loads))]
+        self.nb_cores = psutil.cpu_count(logical=False)
+        self.nb_threads = psutil.cpu_count(logical=True)
+        assert self.nb_threads % self.nb_cores == 0
 
-    @staticmethod
-    def get_values():
-        return psutil.cpu_percent(percpu=True)
+    def get_values(self):
+        raise NotImplementedError()
+
+    def build_header(self, prefix, suffixes):
+        return ['%s%s' % (prefix, suf) for suf in suffixes]
 
 
-class CPUStats:
+class CPULoad(AbstractWatcher):
+    def __init__(self):
+        super().__init__()
+        self.header = self.build_header('load_core_', range(len(self.get_values())))
+
+    def get_values(self):
+        values = psutil.cpu_percent(percpu=True)
+        assert len(values) in (self.nb_cores, self.nb_threads)
+        return values[:self.nb_cores]
+
+
+class CPUStats(AbstractWatcher):
     header = ['ctx_switches', 'interrupts', 'soft_interrupts']
 
     @staticmethod
@@ -27,18 +41,18 @@ class CPUStats:
         return [val.ctx_switches, val.interrupts, val.soft_interrupts]
 
 
-class CPUFreq:
+class CPUFreq(AbstractWatcher):
     def __init__(self):
-        freqs = self.get_values()
-        self.header = ['frequency_core_%d' % i for i in range(len(freqs))]
+        super().__init__()
+        self.header = self.build_header('frequency_core_', range(len(self.get_values())))
 
-    @classmethod
-    def get_values(cls):
-        frequencies = psutil.cpu_freq(percpu=True)
-        return [int(freq.current*1e6) for freq in frequencies]
+    def get_values(self):
+        values = psutil.cpu_freq(percpu=True)
+        assert len(values) in (self.nb_cores, self.nb_threads)
+        return [int(freq.current*1e6) for freq in values[:self.nb_cores]]
 
 
-class MemoryUsage:
+class MemoryUsage(AbstractWatcher):
     header = ['memory_available_percent', 'memory_available']
 
     @staticmethod
@@ -47,27 +61,28 @@ class MemoryUsage:
         return [100-mem.percent, mem.available]
 
 
-class Temperature:
+class Temperature(AbstractWatcher):
     reg = re.compile('Core (?P<id>[0-9]+)')
 
     def __init__(self):
-        temps = self.get_values()
-        self.header = ['temperature_core_%d' % i for i in range(len(temps))]
+        super().__init__()
+        self.header = self.build_header('temperature_core_', range(len(self.get_values())))
 
-    @classmethod
-    def get_values(cls):
+    def get_values(self):
         coretemps = psutil.sensors_temperatures()['coretemp']
         values = []
         for temp in coretemps:
-            match = cls.reg.match(temp.label)
+            match = self.reg.match(temp.label)
             if match:
                 values.append((int(match.group('id')), temp.current))
         values.sort(key = lambda t: t[0])
+        assert len(values) == self.nb_cores
         return [t[1] for t in values]
 
 
-class Network:
+class Network(AbstractWatcher):
     def __init__(self):
+        super().__init__()
         self.interfaces = list(psutil.net_io_counters(pernic=True).keys())
         self.header = []
         for nic in self.interfaces:
