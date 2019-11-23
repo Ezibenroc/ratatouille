@@ -10,12 +10,16 @@ import sys
 
 class AbstractWatcher:
     def __init__(self):
-        self.nb_cores = psutil.cpu_count(logical=False)
-        self.nb_threads = psutil.cpu_count(logical=True)
-        assert self.nb_threads % self.nb_cores == 0
+        self.first_values = self.get_values()
+        self.nb_values = len(self.first_values)
 
     def get_values(self):
         raise NotImplementedError()
+
+    def checked_get_values(self):
+        values = self.get_values()
+        assert self.nb_values == len(values)
+        return values
 
     def build_header(self, prefix, suffixes):
         return ['%s%s' % (prefix, suf) for suf in suffixes]
@@ -24,12 +28,11 @@ class AbstractWatcher:
 class CPULoad(AbstractWatcher):
     def __init__(self):
         super().__init__()
-        self.header = self.build_header('load_core_', range(len(self.get_values())))
+        self.header = self.build_header('load_core_', range(self.nb_values))
 
     def get_values(self):
         values = psutil.cpu_percent(percpu=True)
-        assert len(values) in (self.nb_cores, self.nb_threads)
-        return values[:self.nb_cores]
+        return values
 
 
 class CPUStats(AbstractWatcher):
@@ -44,12 +47,11 @@ class CPUStats(AbstractWatcher):
 class CPUFreq(AbstractWatcher):
     def __init__(self):
         super().__init__()
-        self.header = self.build_header('frequency_core_', range(len(self.get_values())))
+        self.header = self.build_header('frequency_core_', range(self.nb_values))
 
     def get_values(self):
         values = psutil.cpu_freq(percpu=True)
-        assert len(values) in (self.nb_cores, self.nb_threads)
-        return [int(freq.current*1e6) for freq in values[:self.nb_cores]]
+        return [int(freq.current*1e6) for freq in values]
 
 
 class MemoryUsage(AbstractWatcher):
@@ -66,7 +68,7 @@ class Temperature(AbstractWatcher):
 
     def __init__(self):
         super().__init__()
-        self.header = self.build_header('temperature_core_', range(len(self.get_values())))
+        self.header = self.build_header('temperature_core_', range(self.nb_values))
 
     def get_values(self):
         coretemps = psutil.sensors_temperatures()['coretemp']
@@ -76,14 +78,13 @@ class Temperature(AbstractWatcher):
             if match:
                 values.append((int(match.group('id')), temp.current))
         values.sort(key = lambda t: t[0])
-        assert len(values) == self.nb_cores
         return [t[1] for t in values]
 
 
 class Network(AbstractWatcher):
     def __init__(self):
-        super().__init__()
         self.interfaces = list(psutil.net_io_counters(pernic=True).keys())
+        super().__init__()
         self.header = []
         for nic in self.interfaces:
             self.header.extend(['bytes_sent_%s' % nic, 'bytes_recv_%s' % nic])
