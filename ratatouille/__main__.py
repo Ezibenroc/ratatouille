@@ -1,6 +1,7 @@
 import argparse
 import time
 import sys
+import pandas
 from .ratatouille import Monitor, Drawer, monitor_classes
 from .version import __version__, __git_version__
 
@@ -22,6 +23,11 @@ def main():
     sp_collect = sp.add_parser('plot', help='Plot the collected data.')
     sp_collect.add_argument('input_file', type=argparse.FileType('r'),
                             help='Input file of the measures.')
+    sp_collect = sp.add_parser('merge', help='Merge the given CSV files.')
+    sp_collect.add_argument('input_file', type=argparse.FileType('r'), nargs='+',
+                            help='Input files to merge.')
+    sp_collect.add_argument('output_file', type=str,
+                            help='Output file to store the merged data.')
     args = parser.parse_args(sys.argv[1:])
     if args.command == 'collect':
         monitor = Monitor([mon() for mon in monitor_classes], time_interval=args.time_interval,
@@ -33,6 +39,9 @@ def main():
     elif args.command == 'plot':
         drawer = Drawer(args.input_file)
         str(drawer.plot())
+    elif args.command == 'merge':
+        dataframes = [pandas.read_csv(f) for f in args.input_file]
+        pandas.concat(dataframes, sort=False).to_csv(args.output_file, index=False)
     else:
         assert False
 
