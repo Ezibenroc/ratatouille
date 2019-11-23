@@ -6,6 +6,7 @@ import re
 import socket
 import signal
 import sys
+import os
 
 
 class AbstractWatcher:
@@ -23,6 +24,30 @@ class AbstractWatcher:
 
     def build_header(self, prefix, suffixes):
         return ['%s%s' % (prefix, suf) for suf in suffixes]
+
+
+class FileWatcher(AbstractWatcher):
+    def __init__(self, prefix, name, suffix):
+        '''
+        Suppose files of the form prefix/name42/suffix
+        '''
+        self.files = {}
+        regex = re.compile('^%s(?P<id>\\d+)$' % name)
+        for dirname in os.listdir(prefix):
+            match = regex.match(dirname)
+            if match:
+                new_id = int(match.group('id'))
+                self.files[new_id] = os.path.join(prefix, dirname, suffix)
+        super().__init__()
+
+    def get_values(self):
+        values = []
+        for i, filename in self.files.items():
+            with open(filename) as f:
+                lines = f.readlines()
+                assert len(lines) == 1
+                values.append((i, int(lines[0])))
+        return [val[1] for val in values]
 
 
 class CPULoad(AbstractWatcher):
@@ -44,14 +69,14 @@ class CPUStats(AbstractWatcher):
         return [val.ctx_switches, val.interrupts, val.soft_interrupts]
 
 
-class CPUFreq(AbstractWatcher):
+class CPUFreq(FileWatcher):
     def __init__(self):
-        super().__init__()
+        super().__init__('/sys/devices/system/cpu', 'cpu', 'cpufreq/scaling_cur_freq')
         self.header = self.build_header('frequency_core_', range(self.nb_values))
 
     def get_values(self):
-        values = psutil.cpu_freq(percpu=True)
-        return [int(freq.current*1e6) for freq in values]
+        frequencies = super().get_values()
+        return [freq*1000 for freq in frequencies]
 
 
 class MemoryUsage(AbstractWatcher):
