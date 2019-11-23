@@ -5,7 +5,7 @@ from psutil import cpu_count, net_io_counters
 
 def test_monitors():
     classes = [
-        (CPULoad, cpu_count(logical=True)),
+        (CPULoad, 1),
         (MemoryUsage, 2),
         (Temperature, cpu_count(logical=False)),
         (CPUFreq, cpu_count(logical=True)),

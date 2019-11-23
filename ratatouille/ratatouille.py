@@ -51,13 +51,10 @@ class FileWatcher(AbstractWatcher):
 
 
 class CPULoad(AbstractWatcher):
-    def __init__(self):
-        super().__init__()
-        self.header = self.build_header('load_core_', range(self.nb_values))
+    header = ['cpu_load']
 
     def get_values(self):
-        values = psutil.cpu_percent(percpu=True)
-        return values
+        return [psutil.cpu_percent()]
 
 
 class CPUStats(AbstractWatcher):
