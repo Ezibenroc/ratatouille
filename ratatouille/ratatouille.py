@@ -105,7 +105,7 @@ class Temperature(AbstractWatcher):
 
 class Network(AbstractWatcher):
     def __init__(self):
-        self.interfaces = list(psutil.net_io_counters(pernic=True).keys())
+        self.interfaces = list(sorted(psutil.net_io_counters(pernic=True).keys()))
         super().__init__()
         self.header = []
         for nic in self.interfaces:
