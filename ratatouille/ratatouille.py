@@ -90,17 +90,42 @@ class Temperature(AbstractWatcher):
 
     def __init__(self):
         super().__init__()
-        self.header = self.build_header('temperature_core_', range(self.nb_values))
+        self.header = self.build_header()
 
-    def get_values(self):
-        coretemps = psutil.sensors_temperatures()['coretemp']
+    def build_header(self):
+        temperatures = psutil.sensors_temperatures()
+        coretemps = self._get_core_temps(temperatures)
+        header = ['temperature_core_%d' % i for i in range(len(coretemps))]
+        for key, value in sorted(temperatures.items()):
+            if key == 'coretemp':
+                continue
+            assert len(value) == 1
+            label = value[0].label
+            if label != '':
+                key = '%s_%s' % (key, label)
+            header.append(key)
+        return header
+
+    @classmethod
+    def _get_core_temps(cls, temperatures):
+        coretemps = temperatures.get('coretemp', [])
         values = []
         for temp in coretemps:
-            match = self.reg.match(temp.label)
+            match = cls.reg.match(temp.label)
             if match:
                 values.append((int(match.group('id')), temp.current))
         values.sort(key = lambda t: t[0])
         return [t[1] for t in values]
+
+    def get_values(self):
+        temperatures = psutil.sensors_temperatures()
+        alltemps = self._get_core_temps(temperatures)
+        for key, value in sorted(temperatures.items()):
+            if key == 'coretemp':
+                continue
+            assert len(value) == 1
+            alltemps.append(value[0].current)
+        return alltemps
 
 
 class Network(AbstractWatcher):
