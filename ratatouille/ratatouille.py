@@ -47,6 +47,7 @@ class FileWatcher(AbstractWatcher):
                 lines = f.readlines()
                 assert len(lines) == 1
                 values.append((i, int(lines[0])))
+        values.sort()
         return [val[1] for val in values]
 
 
