@@ -192,10 +192,15 @@ class Drawer:
         self.data = pandas.read_csv(input_file)
         self.data.timestamp = pandas.to_datetime(self.data.timestamp)
 
-    def plot(self):
+    def plot(self, columns):
+        for col in columns:
+            if col not in self.data.columns:
+                raise ValueError('No column "%s" in the data' % col)
         from plotnine import ggplot, theme_bw, aes, geom_line, expand_limits, scale_x_datetime, ylab, facet_wrap, theme
         from mizani.formatters import date_format
         data = self.data.copy()
+        if len(columns) > 0:
+            data = data[['timestamp'] + columns]
         data['time_diff'] = data['timestamp'][1:].reset_index(drop=True) - data['timestamp'][:-1].reset_index(drop=True)
         time_step = data['time_diff'].median()
         breakpoints = list(data[data['time_diff'] > time_step * 10].timestamp)

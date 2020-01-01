@@ -23,6 +23,8 @@ def main():
     sp_collect = sp.add_parser('plot', help='Plot the collected data.')
     sp_collect.add_argument('input_file', type=argparse.FileType('r'),
                             help='Input file of the measures.')
+    sp_collect.add_argument('column_name', type=str, nargs='*',
+                            help='Columns to plot.')
     sp_collect = sp.add_parser('merge', help='Merge the given CSV files.')
     sp_collect.add_argument('input_file', type=argparse.FileType('r'), nargs='+',
                             help='Input files to merge.')
@@ -37,8 +39,11 @@ def main():
         t = time.time() - t
         print('Monitored the sytem for %d seconds' % int(t))
     elif args.command == 'plot':
-        drawer = Drawer(args.input_file)
-        str(drawer.plot())
+        try:
+            drawer = Drawer(args.input_file)
+            str(drawer.plot(args.column_name))
+        except Exception as e:
+            sys.exit(e)
     elif args.command == 'merge':
         dataframes = [pandas.read_csv(f) for f in args.input_file]
         pandas.concat(dataframes, sort=False).to_csv(args.output_file, index=False)
