@@ -11,6 +11,7 @@ pandas = "^0.25.3"
 plotnine = "^0.6.0"
 ipython = "^7.9"
 pytest = "^5.2"
+wheel = "^0.34.2"
 
 [tool.poetry.dev-dependencies]
 
