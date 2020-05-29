@@ -154,9 +154,11 @@ class Monitor:
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGHUP, self.signal_handler)
 
+        self.continue_monitoring = True
+
     def signal_handler(self, sig, frame):
         self.file.flush()
-        sys.exit(0)
+        self.continue_monitoring = False
 
     def watch(self):
         timestamp = str(datetime.datetime.now())
@@ -166,7 +168,7 @@ class Monitor:
         self.writer.writerow(row)
 
     def start_loop(self):
-        while True:
+        while self.continue_monitoring:
             self.watch()
             time.sleep(self.time_interval)
 
