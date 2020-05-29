@@ -18,6 +18,8 @@ def main():
     sp_collect = sp.add_parser('collect', help='Collect system data.')
     sp_collect.add_argument('--time_interval', '-t', type=int, default=60,
                             help='Period of the measures, in seconds.')
+    sp_collect.add_argument('targets', nargs='+', help='what to collect', choices=['all', 'cpu_stats', 'cpu_freq',
+                                                                       'cpu_load', 'memory_usage', 'temperature', 'network'])
     sp_collect.add_argument('output_file', type=argparse.FileType('w'),
                             help='Output file for the measures.')
     sp_collect = sp.add_parser('plot', help='Plot the collected data.')
@@ -32,7 +34,14 @@ def main():
                             help='Output file to store the merged data.')
     args = parser.parse_args(sys.argv[1:])
     if args.command == 'collect':
-        monitor = Monitor([mon() for mon in monitor_classes], time_interval=args.time_interval,
+        if 'all' in args.targets:
+            to_monitor = monitor_classes.values()
+        else:
+            to_monitor = set()
+            for target in args.targets:
+                to_monitor.add(monitor_classes[target])
+
+        monitor = Monitor([mon() for mon in to_monitor], time_interval=args.time_interval,
                           output_file=args.output_file)
         t = time.time()
         monitor.start_loop()

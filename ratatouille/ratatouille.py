@@ -172,15 +172,14 @@ class Monitor:
             self.watch()
             time.sleep(self.time_interval)
 
-
-monitor_classes = [
-    CPUStats,
-    MemoryUsage,
-    Temperature,
-    CPUFreq,
-    CPULoad,
-    Network,
-]
+monitor_classes = {
+    'cpu_stats': CPUStats,
+    'memory_usage': MemoryUsage,
+    'temperature': Temperature,
+    'cpu_freq': CPUFreq,
+    'cpu_load': CPULoad,
+    'network': Network,
+}
 
 
 class Drawer:
