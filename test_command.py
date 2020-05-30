@@ -14,7 +14,7 @@ def test_version():
 
 
 def test_collect(period=2, run_time=5, filename='/tmp/test.csv'):
-    proc = Popen(['ratatouille', 'collect', '-t', str(period), filename])
+    proc = Popen(['ratatouille', 'collect', '-t', str(period), 'all', filename])
     time.sleep(run_time)
     proc.send_signal(signal.SIGINT)
     assert proc.wait() == 0

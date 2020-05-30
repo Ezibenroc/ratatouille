@@ -18,8 +18,7 @@ def main():
     sp_collect = sp.add_parser('collect', help='Collect system data.')
     sp_collect.add_argument('--time_interval', '-t', type=int, default=60,
                             help='Period of the measures, in seconds.')
-    sp_collect.add_argument('targets', nargs='+', help='what to collect', choices=['all', 'cpu_stats', 'cpu_freq',
-                                                                       'cpu_load', 'memory_usage', 'temperature', 'network'])
+    sp_collect.add_argument('targets', nargs='+', help='what to collect', choices=list(monitor_classes) + ['all'])
     sp_collect.add_argument('output_file', type=argparse.FileType('w'),
                             help='Output file for the measures.')
     sp_collect = sp.add_parser('plot', help='Plot the collected data.')
