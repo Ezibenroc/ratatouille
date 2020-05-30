@@ -112,7 +112,12 @@ class Temperature(AbstractWatcher):
             if key == 'coretemp':
                 continue
             for elt in value:
-                alltemps['temperature_%s%s' % (key, elt.label)] = elt.current
+                label = f'temperature_{key}'
+                if elt.label != '':
+                    label = f'{label}_{elt.label}'
+
+                alltemps[label] = elt.current
+
         return alltemps
 
     def get_values(self):
@@ -149,9 +154,11 @@ class Monitor:
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGHUP, self.signal_handler)
 
+        self.continue_monitoring = True
+
     def signal_handler(self, sig, frame):
         self.file.flush()
-        sys.exit(0)
+        self.continue_monitoring = False
 
     def watch(self):
         timestamp = str(datetime.datetime.now())
@@ -161,19 +168,18 @@ class Monitor:
         self.writer.writerow(row)
 
     def start_loop(self):
-        while True:
+        while self.continue_monitoring:
             self.watch()
             time.sleep(self.time_interval)
 
-
-monitor_classes = [
-    CPUStats,
-    MemoryUsage,
-    Temperature,
-    CPUFreq,
-    CPULoad,
-    Network,
-]
+monitor_classes = {
+    'cpu_stats': CPUStats,
+    'memory_usage': MemoryUsage,
+    'temperature': Temperature,
+    'cpu_freq': CPUFreq,
+    'cpu_load': CPULoad,
+    'network': Network,
+}
 
 
 class Drawer:
