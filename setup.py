@@ -53,7 +53,7 @@ if __name__ == '__main__':
                                   ]
           },
           install_requires=[
-              'psutil',
+              'psutil<5.7.0',
               'pandas',
           ],
           url='https://github.com/Ezibenroc/ratatouille',
