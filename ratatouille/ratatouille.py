@@ -87,7 +87,7 @@ class MemoryUsage(AbstractWatcher):
 
 
 class Temperature(AbstractWatcher):
-    reg = re.compile('Core (?P<core_id>[0-9]+)|Package id (?P<package_id>[0-9]+)')
+    reg = re.compile('(?:Core (?P<core_id>[0-9]+))|(?:(?:Package|Physical) id (?P<package_id>[0-9]+))')
 
     def __init__(self):
         self.header = list(self._get_values_dict().keys())
@@ -101,7 +101,7 @@ class Temperature(AbstractWatcher):
         for temp in coretemps:
             match = cls.reg.match(temp.label)
             assert match is not None
-            package_id = match.group('package_id')
+            package_id = match.groupdict()['package_id']
             if package_id is not None:
                 package_id = int(package_id)
                 assert package_id not in packages
@@ -114,10 +114,10 @@ class Temperature(AbstractWatcher):
         values = []
         for temp in coretemps:
             match = cls.reg.match(temp.label)
-            if match.group('package_id') is not None:
-                package_id = int(match.group('package_id'))
+            if match.groupdict()['package_id'] is not None:
+                package_id = int(match.groupdict()['package_id'])
             else:
-                core_id = match.group('core_id')
+                core_id = match.groupdict()['core_id']
                 assert core_id is not None
                 core_id = int(core_id)
                 core_id = core_id*nb_packages + package_id
