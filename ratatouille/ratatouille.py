@@ -112,9 +112,9 @@ class Temperature(AbstractWatcher):
             if key == 'coretemp':
                 continue
             for elt in value:
-                label = f'temperature_{key}'
+                label = 'temperature_%s' % key
                 if elt.label != '':
-                    label = f'{label}_{elt.label}'
+                    label = '%s_%s' % (label, elt.label)
 
                 alltemps[label] = elt.current
 
