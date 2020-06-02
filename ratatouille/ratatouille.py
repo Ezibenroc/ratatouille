@@ -111,7 +111,7 @@ class Temperature(AbstractWatcher):
         assert packages == set(range(nb_packages))
         # Finally, we iterate a second time to build the list of core temperatures
         package_id = -1
-        values = {}
+        values = []
         for temp in coretemps:
             match = cls.reg.match(temp.label)
             if match.group('package_id') is not None:
@@ -121,8 +121,9 @@ class Temperature(AbstractWatcher):
                 assert core_id is not None
                 core_id = int(core_id)
                 core_id = core_id*nb_packages + package_id
-                values['temperature_core_%d' % core_id] = temp.current
-        return values
+                values.append((core_id, temp.current))
+        values.sort(key = lambda t: t[0])
+        return {'temperature_core_%d' % t[0]: t[1] for t in values}
 
     @classmethod
     def _get_values_dict(cls):
