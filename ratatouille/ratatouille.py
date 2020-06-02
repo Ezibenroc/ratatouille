@@ -87,7 +87,7 @@ class MemoryUsage(AbstractWatcher):
 
 
 class Temperature(AbstractWatcher):
-    reg = re.compile('Core (?P<id>[0-9]+)')
+    reg = re.compile('Core (?P<core_id>[0-9]+)|Package id (?P<package_id>[0-9]+)')
 
     def __init__(self):
         self.header = list(self._get_values_dict().keys())
@@ -96,13 +96,33 @@ class Temperature(AbstractWatcher):
     @classmethod
     def _get_core_temps(cls, temperatures):
         coretemps = temperatures.get('coretemp', [])
-        values = []
+        packages = set()
+        # First, we iterate on the labels to get all the packages ID
         for temp in coretemps:
             match = cls.reg.match(temp.label)
-            if match:
-                values.append((int(match.group('id')), temp.current))
-        values.sort(key = lambda t: t[0])
-        return {'temperature_core_%d' % t[0]: t[1] for t in values}
+            assert match is not None
+            package_id = match.group('package_id')
+            if package_id is not None:
+                package_id = int(package_id)
+                assert package_id not in packages
+                packages.add(package_id)
+        # If there are 4 distinct packages, we expect them to be labelled as 0,1,2,3
+        nb_packages = len(packages)
+        assert packages == set(range(nb_packages))
+        # Finally, we iterate a second time to build the list of core temperatures
+        package_id = -1
+        values = {}
+        for temp in coretemps:
+            match = cls.reg.match(temp.label)
+            if match.group('package_id') is not None:
+                package_id = int(match.group('package_id'))
+            else:
+                core_id = match.group('core_id')
+                assert core_id is not None
+                core_id = int(core_id)
+                core_id = core_id*nb_packages + package_id
+                values['temperature_core_%d' % core_id] = temp.current
+        return values
 
     @classmethod
     def _get_values_dict(cls):
