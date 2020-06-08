@@ -6,7 +6,7 @@ authors = ["Tom Cornebize <tom.cornebize@univ-grenoble-alpes.fr>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-psutil = "^5.6"
+psutil = "<5.7.0"
 pandas = "^0.25.3"
 plotnine = "^0.6.0"
 ipython = "^7.9"
