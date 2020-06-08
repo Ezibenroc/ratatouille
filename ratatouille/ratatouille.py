@@ -77,6 +77,24 @@ class CPUFreq(FileWatcher):
         return [freq*1000 for freq in frequencies]
 
 
+class CPUPower(FileWatcher):
+    def __init__(self):
+        super().__init__('/sys/devices/virtual/powercap/intel-rapl/', 'intel-rapl:', 'energy_uj')
+        self.header = self.build_header('power_cpu_', range(self.nb_values))
+
+    def get_values(self):
+        energies = super().get_values()
+        instant = time.time()
+        try:
+            duration = instant - self.instant
+            powers = [(new-old)*1e-6/duration for new, old in zip(energies, self.energies)]
+        except AttributeError:
+            powers = [float('nan') for _ in energies]
+        self.instant = instant
+        self.energies = energies
+        return powers
+
+
 class MemoryUsage(AbstractWatcher):
     header = ['memory_available_percent', 'memory_available']
 
@@ -174,7 +192,6 @@ class Monitor:
         self.writer.writerow(header)
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGHUP, self.signal_handler)
-
         self.continue_monitoring = True
 
     def signal_handler(self, sig, frame):
@@ -190,14 +207,15 @@ class Monitor:
 
     def start_loop(self):
         while self.continue_monitoring:
-            self.watch()
             time.sleep(self.time_interval)
+            self.watch()
 
 monitor_classes = {
     'cpu_stats': CPUStats,
     'memory_usage': MemoryUsage,
     'temperature': Temperature,
     'cpu_freq': CPUFreq,
+    'cpu_power': CPUPower,
     'cpu_load': CPULoad,
     'network': Network,
 }
