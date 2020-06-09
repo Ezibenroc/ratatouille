@@ -1,8 +1,7 @@
 import argparse
 import time
 import sys
-import pandas
-from .ratatouille import Monitor, Drawer, monitor_classes
+from .ratatouille import Monitor, Drawer, monitor_classes, merge_files, RatatouilleDependencyError
 from .version import __version__, __git_version__
 
 
@@ -53,8 +52,10 @@ def main():
         except Exception as e:
             sys.exit(e)
     elif args.command == 'merge':
-        dataframes = [pandas.read_csv(f) for f in args.input_file]
-        pandas.concat(dataframes, sort=False).to_csv(args.output_file, index=False)
+        try:
+            merge_files(args.input_file, args.output_file)
+        except Exception as e:
+            sys.exit(e)
     else:
         assert False
 

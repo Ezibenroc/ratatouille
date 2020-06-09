@@ -9,6 +9,10 @@ import sys
 import os
 
 
+class RatatouilleDependencyError(Exception):
+    pass
+
+
 class AbstractWatcher:
     def __init__(self):
         self.first_values = self.get_values()
@@ -223,7 +227,13 @@ monitor_classes = {
 
 class Drawer:
     def __init__(self, input_file):
-        import pandas
+        try:
+            import pandas
+        except ImportError:
+            msg = """Package 'pandas' is required for the plot functionnality.
+            Try installing it with 'pip install pandas'.
+            """
+            raise RatatouilleDependencyError(msg)
         self.input_file = input_file
         self.data = pandas.read_csv(input_file)
         self.data.timestamp = pandas.to_datetime(self.data.timestamp)
@@ -232,8 +242,14 @@ class Drawer:
         for col in columns:
             if col not in self.data.columns:
                 raise ValueError('No column "%s" in the data' % col)
-        from plotnine import ggplot, theme_bw, aes, geom_line, expand_limits, scale_x_datetime, ylab, facet_wrap, theme
-        from mizani.formatters import date_format
+        try:
+            from plotnine import ggplot, theme_bw, aes, geom_line, expand_limits, scale_x_datetime, ylab, facet_wrap, theme
+            from mizani.formatters import date_format
+        except ImportError:
+            msg = """Package 'plotnine' is required for the plot functionnality.
+            Try installing it with 'pip install plotnine'.
+            """
+            raise RatatouilleDependencyError(msg)
         data = self.data.copy()
         if len(columns) > 0:
             data = data[['timestamp'] + columns]
@@ -254,3 +270,15 @@ class Drawer:
             plot += scale_x_datetime(labels=date_format('%H:%M'))
         plot += ylab('Value')
         return plot
+
+
+def merge_files(input_files, output_file):
+    try:
+        import pandas
+    except ImportError:
+        msg = """Package 'pandas' is required for the merge functionnality.
+        Try installing it with 'pip install pandas'.
+        """
+        raise RatatouilleDependencyError(msg)
+    dataframes = [pandas.read_csv(f) for f in input_files]
+    pandas.concat(dataframes, sort=False).to_csv(output_file, index=False)
