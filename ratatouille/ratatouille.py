@@ -47,10 +47,7 @@ class FileWatcher(AbstractWatcher):
     def get_values(self):
         values = []
         for i, filename in self.files.items():
-            with open(filename) as f:
-                lines = f.readlines()
-                assert len(lines) == 1
-                values.append((i, int(lines[0])))
+            values.append((i, int(get_string_in_file(filename))))
         values.sort()
         return [val[1] for val in values]
 
@@ -97,6 +94,13 @@ class CPUPower(FileWatcher):
         self.instant = instant
         self.energies = energies
         return powers
+
+
+def get_string_in_file(filename):
+    with open(filename) as f:
+        lines = f.readlines()
+        assert len(lines) == 1
+        return lines[0].rstrip('\n')
 
 
 class MemoryUsage(AbstractWatcher):
