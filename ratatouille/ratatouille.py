@@ -7,6 +7,7 @@ import socket
 import signal
 import sys
 import os
+from collections import OrderedDict
 
 
 class RatatouilleDependencyError(Exception):
@@ -78,21 +79,47 @@ class CPUFreq(FileWatcher):
         return [freq*1000 for freq in frequencies]
 
 
-class CPUPower(FileWatcher):
+class CPUPower(AbstractWatcher):
     def __init__(self):
-        super().__init__('/sys/devices/virtual/powercap/intel-rapl/', 'intel-rapl:', 'energy_uj')
-        self.header = self.build_header('power_cpu_', range(self.nb_values))
+        self.files = self.get_init_files('/sys/devices/virtual/powercap/intel-rapl/', 'intel-rapl', 'energy_uj')
+
+        self.header = ["power_%s" % label for label in self.files.keys()]
+        super().__init__()
+
+
+    def get_init_files(self, prefix, name, suffix, label_suffix = ''):
+        files = OrderedDict()
+        regex = re.compile('^%s:(?P<id>\\d+)$' % name)
+        for dirname in os.listdir(prefix):
+            match = regex.match(dirname)
+            if match: # dirname is of the form intel-rapl:<package-id>
+                # Add the package file
+                label = get_string_in_file(os.path.join(prefix, dirname, "name")) + label_suffix
+                files[label] = os.path.join(prefix, dirname, suffix)
+
+                # Get core, uncore and dram files
+                regex2 = re.compile('^%s:(?P<id>\\d+)$' % (dirname))
+                for dirname2 in os.listdir("%s%s" % (prefix, dirname)):
+                    match2 = regex2.match(dirname2)
+                    if match2: # dirname2 is of the form intel-rapl:<package-id>:<id>
+                        label2 = "%s_%s%s" % (label, get_string_in_file(os.path.join(prefix, dirname, dirname2, "name")), label_suffix)
+                        files[label2] = os.path.join(prefix, dirname, dirname2, suffix)
+        return files
+
 
     def get_values(self):
-        energies = super().get_values()
+        energies = []
+        for filename in self.files.values():
+            energies.append(int(get_string_in_file(filename)))
+
         instant = time.time()
         try:
-            duration = instant - self.instant
-            powers = [(new-old)*1e-6/duration for new, old in zip(energies, self.energies)]
+            duration = instant - self.last_instant
+            powers = [(new-old)*1e-6/duration for new, old in zip(energies, self.last_energies)]
         except AttributeError:
             powers = [float('nan') for _ in energies]
-        self.instant = instant
-        self.energies = energies
+        self.last_instant = instant
+        self.last_energies = energies
         return powers
 
 
