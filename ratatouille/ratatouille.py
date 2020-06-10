@@ -116,6 +116,9 @@ class CPUPower(AbstractWatcher):
         try:
             duration = instant - self.last_instant
             powers = [(new-old)*1e-6/duration for new, old in zip(energies, self.last_energies)]
+            for i, p in enumerate(powers):
+                if p < 0:
+                    powers[i] = float('nan')
         except AttributeError:
             powers = [float('nan') for _ in energies]
         self.last_instant = instant
