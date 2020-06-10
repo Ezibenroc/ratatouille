@@ -224,6 +224,7 @@ class Monitor:
         self.time_interval = time_interval
         self.file = output_file
         self.writer = csv.writer(self.file)
+        self.hostname = socket.gethostname()
         header = ['hostname', 'timestamp']
         for watcher in self.watchers:
             header.extend(watcher.header)
@@ -238,7 +239,7 @@ class Monitor:
 
     def watch(self):
         timestamp = str(datetime.datetime.now())
-        row = [socket.gethostname(), timestamp]
+        row = [self.hostname, timestamp]
         for watcher in self.watchers:
             row.extend(watcher.get_values())
         self.writer.writerow(row)
