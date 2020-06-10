@@ -222,6 +222,7 @@ class Monitor:
     def __init__(self, watchers, output_file, time_interval):
         self.watchers = watchers
         self.time_interval = time_interval
+        self.next_watch = time.time() + self.time_interval
         self.file = output_file
         self.writer = csv.writer(self.file)
         self.hostname = socket.gethostname()
@@ -246,7 +247,10 @@ class Monitor:
 
     def start_loop(self):
         while self.continue_monitoring:
-            time.sleep(self.time_interval)
+            sleep_time = self.next_watch - time.time()
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+            self.next_watch = time.time() + self.time_interval
             self.watch()
 
 monitor_classes = {
