@@ -297,6 +297,8 @@ class Drawer:
         breakpoints = list(data[data['time_diff'] > time_step * 10].timestamp)
         breakpoints = [data['timestamp'].min(), *breakpoints, data['timestamp'].max()]
         data = data.drop('time_diff', 1).melt('timestamp')
+        import pandas
+        data['variable'] = pandas.Categorical(data['variable'], categories=columns)
         plot = ggplot() + theme_bw()
         for min_t, max_t in zip(breakpoints[:-1], breakpoints[1:]):
             tmp = data[(data['timestamp'] > min_t) & (data['timestamp'] < max_t)]
