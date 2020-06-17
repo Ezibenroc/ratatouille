@@ -292,13 +292,16 @@ class Drawer:
         data = self.data.copy()
         if len(columns) > 0:
             data = data[['timestamp'] + columns]
+        else:
+            data.drop('hostname', axis=1, inplace=True)
         data['time_diff'] = data['timestamp'][1:].reset_index(drop=True) - data['timestamp'][:-1].reset_index(drop=True)
         time_step = data['time_diff'].median()
         breakpoints = list(data[data['time_diff'] > time_step * 10].timestamp)
         breakpoints = [data['timestamp'].min(), *breakpoints, data['timestamp'].max()]
         data = data.drop('time_diff', 1).melt('timestamp')
         import pandas
-        data['variable'] = pandas.Categorical(data['variable'], categories=columns)
+        if len(columns) > 0:
+            data['variable'] = pandas.Categorical(data['variable'], categories=columns)
         plot = ggplot() + theme_bw()
         for min_t, max_t in zip(breakpoints[:-1], breakpoints[1:]):
             tmp = data[(data['timestamp'] > min_t) & (data['timestamp'] < max_t)]
