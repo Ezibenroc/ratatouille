@@ -202,6 +202,32 @@ class Temperature(AbstractWatcher):
         return [values[k] for k in self.header]
 
 
+class FanSpeed(AbstractWatcher):
+    def __init__(self):
+        self.header = list(self._get_values_dict().keys())
+        super().__init__()
+
+    @classmethod
+    def _get_values_dict(cls):
+        speeds = psutil.sensors_fans()
+        values = {}
+        for key, value in sorted(speeds.items()):
+            for elt in value:
+
+                label = "speed_%s" % key
+                if elt.label != '':
+                    label = "%s_%s" % (label, (elt.label.replace(' ', '_')))
+
+                values[label] = elt.current
+
+        return values
+
+
+    def get_values(self):
+        values = self._get_values_dict()
+        return [values[k] for k in self.header]
+
+
 class Network(AbstractWatcher):
     def __init__(self):
         self.interfaces = list(sorted(psutil.net_io_counters(pernic=True).keys()))
@@ -261,6 +287,7 @@ monitor_classes = {
     'cpu_power': CPUPower,
     'cpu_load': CPULoad,
     'network': Network,
+    'fan_speed': FanSpeed,
 }
 
 
