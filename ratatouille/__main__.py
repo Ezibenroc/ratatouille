@@ -23,6 +23,8 @@ def main():
     sp_collect = sp.add_parser('plot', help='Plot the collected data.')
     sp_collect.add_argument('input_file', type=argparse.FileType('r'),
                             help='Input file of the measures.')
+    sp_collect.add_argument('--output', '-o', type=str,
+                            help='Output file of the plot.')
     sp_collect.add_argument('column_name', type=str, nargs='*',
                             help='Columns to plot.')
     sp_collect = sp.add_parser('merge', help='Merge the given CSV files.')
@@ -48,7 +50,11 @@ def main():
     elif args.command == 'plot':
         try:
             drawer = Drawer(args.input_file)
-            str(drawer.plot(args.column_name))
+            plot = drawer.create_plot(args.column_name)
+            if args.output:
+                plot.save(args.output, dpi=300, height=13.35, width=25)
+            else:
+                str(plot)
         except Exception as e:
             sys.exit(e)
     elif args.command == 'merge':

@@ -304,7 +304,7 @@ class Drawer:
         self.data = pandas.read_csv(input_file)
         self.data.timestamp = pandas.to_datetime(self.data.timestamp)
 
-    def plot(self, columns):
+    def create_plot(self, columns):
         for col in columns:
             if col not in self.data.columns:
                 raise ValueError('No column "%s" in the data' % col)
