@@ -238,10 +238,21 @@ class Network(AbstractWatcher):
 
     def get_values(self):
         data = psutil.net_io_counters(pernic=True)
-        values = []
+        byte_numbers = []
+        instant = time.time()
         for nic in self.interfaces:
-            values.extend([data[nic].bytes_sent, data[nic].bytes_recv])
-        return values
+            byte_numbers.extend([data[nic].bytes_sent, data[nic].bytes_recv])
+        try:
+            duration = instant - self.last_instant
+            speeds = [(new-old)/duration for new, old in zip(byte_numbers, self.last_byte_numbers)]
+            for i, p in enumerate(speeds):
+                if p < 0:
+                    speeds[i] = float('nan')
+        except AttributeError:
+            speeds = [float('nan') for _ in byte_numbers]
+        self.last_instant = instant
+        self.last_byte_numbers = byte_numbers
+        return speeds
 
 
 class Monitor:
