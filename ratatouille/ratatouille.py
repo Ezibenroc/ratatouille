@@ -320,7 +320,8 @@ class Drawer:
         if len(columns) > 0:
             data = data[['timestamp'] + columns]
         else:
-            data.drop('hostname', axis=1, inplace=True)
+            if 'hostname' in data:
+                data.drop('hostname', axis=1, inplace=True)
         data['time_diff'] = data['timestamp'][1:].reset_index(drop=True) - data['timestamp'][:-1].reset_index(drop=True)
         time_step = data['time_diff'].median()
         breakpoints = list(data[data['time_diff'] > time_step * 10].timestamp)
