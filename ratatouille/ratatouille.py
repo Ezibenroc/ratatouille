@@ -14,6 +14,10 @@ class RatatouilleDependencyError(Exception):
     pass
 
 
+class RatatouillePortabilityError(Exception):
+    pass
+
+
 class AbstractWatcher:
     def __init__(self):
         self.first_values = self.get_values()
@@ -81,7 +85,10 @@ class CPUFreq(FileWatcher):
 
 class CPUPower(AbstractWatcher):
     def __init__(self):
-        self.files = self.get_init_files('/sys/devices/virtual/powercap/intel-rapl/', 'intel-rapl', 'energy_uj')
+        try:
+            self.files = self.get_init_files('/sys/devices/virtual/powercap/intel-rapl/', 'intel-rapl', 'energy_uj')
+        except FileNotFoundError:
+            raise RatatouillePortabilityError('Power monitoring unavailable, could not read intel-rapl files')
 
         self.header = ["power_%s" % label for label in self.files.keys()]
         super().__init__()

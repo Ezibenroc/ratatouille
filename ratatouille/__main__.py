@@ -2,6 +2,7 @@ import argparse
 import time
 import sys
 from .ratatouille import Monitor, Drawer, monitor_classes, merge_files, RatatouilleDependencyError
+from .ratatouille import RatatouillePortabilityError
 from .version import __version__, __git_version__
 
 
@@ -40,8 +41,13 @@ def main():
             to_monitor = set()
             for target in args.targets:
                 to_monitor.add(monitor_classes[target])
-
-        monitor = Monitor([mon() for mon in to_monitor], time_interval=args.time_interval,
+        instances = []
+        for mon in to_monitor:
+            try:
+                instances.append(mon())
+            except RatatouillePortabilityError as e:
+                sys.stderr.write(str(f'WARNING: {e}\n'))
+        monitor = Monitor([inst for inst in instances], time_interval=args.time_interval,
                           output_file=args.output_file)
         t = time.time()
         monitor.start_loop()
