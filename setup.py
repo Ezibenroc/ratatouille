@@ -4,7 +4,7 @@ import sys
 from setuptools import setup
 import subprocess
 
-VERSION = '0.0.4'
+VERSION = '0.0.5'
 
 
 class CommandError(Exception):
