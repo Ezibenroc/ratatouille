@@ -46,7 +46,7 @@ def main():
             try:
                 instances.append(mon())
             except RatatouillePortabilityError as e:
-                sys.stderr.write(str(f'WARNING: {e}\n'))
+                sys.stderr.write('WARNING: %s\n' % e)
         monitor = Monitor([inst for inst in instances], time_interval=args.time_interval,
                           output_file=args.output_file)
         t = time.time()
