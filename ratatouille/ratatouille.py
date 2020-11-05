@@ -160,6 +160,7 @@ class Temperature(AbstractWatcher):
     def _get_core_temps(cls, temperatures):
         coretemps = temperatures.get('coretemp', [])
         packages = set()
+        packages_values = []
         # First, we iterate on the labels to get all the packages ID
         for temp in coretemps:
             match = cls.reg.match(temp.label)
@@ -169,6 +170,7 @@ class Temperature(AbstractWatcher):
                 package_id = int(package_id)
                 assert package_id not in packages
                 packages.add(package_id)
+                packages_values.append((package_id, temp.current))
         # If there are 4 distinct packages, we expect them to be labelled as 0,1,2,3
         nb_packages = len(packages)
         assert packages == set(range(nb_packages))
@@ -186,7 +188,9 @@ class Temperature(AbstractWatcher):
                 core_id = core_id*nb_packages + package_id
                 values.append((core_id, temp.current))
         values.sort(key = lambda t: t[0])
-        return {'temperature_core_%d' % t[0]: t[1] for t in values}
+        result = {'temperature_core_%d' % t[0]: t[1] for t in values}
+        result.update({'temperature_cpu_%d' % t[0]: t[1] for t in packages_values})
+        return result
 
     @classmethod
     def _get_values_dict(cls):
