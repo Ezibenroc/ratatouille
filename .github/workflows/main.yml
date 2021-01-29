@@ -27,7 +27,7 @@ jobs:
               run: |
                 python setup.py bdist_wheel
                 pip install dist/*.whl
-                py.test test_*
+                py.test test_command.py
                 twine check dist/*
             - name: Save the build files
               uses: actions/upload-artifact@master
