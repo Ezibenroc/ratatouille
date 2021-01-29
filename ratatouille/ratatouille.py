@@ -46,7 +46,10 @@ class FileWatcher(AbstractWatcher):
             match = regex.match(dirname)
             if match:
                 new_id = int(match.group('id'))
-                self.files[new_id] = os.path.join(prefix, dirname, suffix)
+                filename = os.path.join(prefix, dirname, suffix)
+                if not os.path.isfile(filename):
+                    raise RatatouillePortabilityError(f'File {filename} not found')
+                self.files[new_id] = filename
         super().__init__()
 
     def get_values(self):
@@ -75,7 +78,10 @@ class CPUStats(AbstractWatcher):
 
 class CPUFreq(FileWatcher):
     def __init__(self):
-        super().__init__('/sys/devices/system/cpu', 'cpu', 'cpufreq/scaling_cur_freq')
+        try:
+            super().__init__('/sys/devices/system/cpu', 'cpu', 'cpufreq/scaling_cur_freq')
+        except RatatouillePortabilityError:
+            raise RatatouillePortabilityError('CPU frequency unavailable, could not read cpufreq files')
         self.header = self.build_header('frequency_core_', range(self.nb_values))
 
     def get_values(self):
