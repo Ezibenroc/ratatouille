@@ -1,5 +1,6 @@
 from ratatouille.ratatouille import *
 import os
+import sys
 from psutil import cpu_count, net_io_counters
 
 
@@ -12,7 +13,11 @@ def test_monitors():
         (Network, 2*len(net_io_counters(pernic=True)))
     ]
     for cls, nb_values in classes:
-        mon = cls()
+        try:
+            mon = cls()
+        except RatatouillePortabilityError as e:
+            sys.stderr.write('WARNING: %s\n' % e)
+            continue
         values = mon.get_values()
         assert len(mon.header) == len(values)
         assert len(values) == nb_values
