@@ -32,6 +32,12 @@ def write_version(filename, version_dict):
         for version_name in version_dict:
             f.write('%s = "%s"\n' % (version_name, version_dict[version_name]))
 
+try:
+    with open('README.md') as f:
+        long_description = ''.join(f.readlines())
+except (IOError, ImportError, RuntimeError):
+    print('Could not generate long description.')
+    long_description = ''
 
 if __name__ == '__main__':
     try:
@@ -45,6 +51,8 @@ if __name__ == '__main__':
     setup(name='ratatouille',
           version=VERSION,
           description='System usage monitoring tool',
+          long_description_content_type="text/markdown",
+          long_description=long_description,
           author='Tom Cornebize',
           author_email='tom.cornebize@gmail.com',
           packages=['ratatouille'],
@@ -59,9 +67,10 @@ if __name__ == '__main__':
           license='MIT',
           classifiers=[
               'License :: OSI Approved :: MIT License',
-              'Intended Audience :: Developers',
+              'Intended Audience :: Science/Research',
+              'Intended Audience :: System Administrators',
               'Operating System :: POSIX :: Linux',
-              'Operating System :: MacOS :: MacOS X',
-              'Programming Language :: Python :: 3.6',
+              'Programming Language :: Python :: 3.7',
+              'Programming Language :: Python :: 3.8',
           ],
           )

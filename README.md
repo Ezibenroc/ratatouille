@@ -1,11 +1,12 @@
 # Ratatouille
 
+[![DOI](https://zenodo.org/badge/173307160.svg)](https://zenodo.org/badge/latestdoi/173307160)
+
 ## Installation
 
-The best way to install `ratatouille` is to use one of the
-[releases](https://github.com/Ezibenroc/ratatouille/releases). For instance, to install the version 0.0.2:
+The best way to install `ratatouille` is from pypi:
 ```sh
-pip install https://github.com/Ezibenroc/ratatouille/releases/download/0.0.2/ratatouille-0.0.2-py3-none-any.whl
+pip install ratatouille
 ```
 
 Alternatively, you can install from `master` as follows:
