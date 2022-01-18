@@ -21,4 +21,4 @@ def test_collect(period=2, run_time=5, filename='/tmp/test.csv'):
     assert os.path.isfile(filename)
     with open(filename) as f:
         lines = f.readlines()
-    assert len(lines) == math.ceil(run_time/period)
+    assert len(lines) >= math.ceil(run_time/period)
