@@ -354,7 +354,7 @@ class Drawer:
         time_step = data['time_diff'].median()
         breakpoints = list(data[data['time_diff'] > time_step * 10].timestamp)
         breakpoints = [data['timestamp'].min(), *breakpoints, data['timestamp'].max()]
-        data = data.drop('time_diff', 1).melt('timestamp')
+        data = data.drop('time_diff', axis=1).melt('timestamp')
         import pandas
         if len(columns) > 0:
             data['variable'] = pandas.Categorical(data['variable'], categories=columns)
